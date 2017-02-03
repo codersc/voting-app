@@ -1,0 +1,46 @@
+.container {
+    margin-top: 0.5%;
+}
+
+h4 {
+    color: darkblue !important;
+}
+
+.poll-chart {
+    text-align: center;
+    margin: 10px 0px 10px 0px;
+}
+
+#form-label {
+    color: #0d47a5;
+}
+
+#label-for-new-choice {
+    color: #0d47a5;
+}
+
+form label {
+    color: slategrey;
+}
+
+.item-emphasis {
+    text-align: center;
+    color: #0d47a5;
+    font-size: 15px;    
+}
+
+#label-for-new-choice {
+    margin-top: 1%;
+}
+
+#new-choice-alert {
+    margin-top: 1%;
+}
+
+.alert {
+    display: none;
+}
+
+.new-poll {
+    display: none;
+}

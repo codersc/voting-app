@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+        	
+    <head>
+		<title>Free Code Camp Voting App</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="public/css/polls.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
+    </head>
+        	
+    <body>
+           	    
+        <div class="container">
+            <ul class="nav nav-tabs">
+                <li role="presentation" class="active"><a href="#">Home</a></li>
+                <li role="presentation"><a href="/profile">Profile</a></li>
+            </ul>          
+            <div class="polls">
+                <div id="poll-list" class="list-group">
+                    <li class="list-group-item item-emphasis"><strong>Free Code Camp Voting App Polls</strong></li>
+                </div>                
+            </div>
+            <div class="poll-chart">
+            </div> 
+            <div class="vote-widget">
+                <div id="choices" class="list-group">
+                </div>
+            </div>
+            <hr>
+            <label id="form-label" for="poll-form">Make a New Poll</label>
+            <form onsubmit="return submitForm()" id="poll-form">
+                <label for="title">Poll Title:</label>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="poll[title]" id="input-title">
+                </div>    
+                <label for="choice">Add a New Choice:</label>
+                <div class="input-group" id="choice">
+                    <input type="text" class="form-control" placeholder="Type your new choice here and click add..." id="input-choice">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default btn-info" type="button" id="btn-add-choice">Add</button>
+                    </span>                        
+                </div>   
+                <br>
+                <button type="submit" class="btn btn-default btn-primary">Submit</button>
+            </form> 
+            <br>
+            <div class="alert alert-danger" role="alert">
+            </div> 
+            <div class="new-poll">
+                <div class="panel panel-default" id="panel">
+                    <div class="panel-heading"></div>
+                    <table class="table">
+                        <tbody class="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="common/ajax-functions.js"></script>
+        <script type="text/javascript" src="controllers/pollController.client.js"></script>
+        
+	</body>
+        	
+</html>

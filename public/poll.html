@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+	
+	<head>
+		<title>Free Code Camp Voting App</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
+        <style type="text/css">
+            .container {
+                text-align: center;
+            }
+            
+            .poll-chart {
+                margin-top: 2%;
+            }
+        </style>
+	</head>
+	
+    <body>
+        
+        <div class="container">
+            <ul class="nav nav-tabs">
+                <li role="presentation"><a href="/polls">Home</a></li>
+                <li role="presentation"><a href="/profile">Profile</a></li>
+            </ul>            
+            <div class="poll-chart">
+                <div id="poll-title">
+                </div>
+            </div>  
+        </div>
+        <script type="text/javascript" src="common/ajax-functions.js"></script>
+        <script>
+            var appUrl = window.location.origin;
+            
+            var ajaxFunctions = {
+                ready: function ready(fn) {
+                    if (typeof fn !== 'function') {
+                        return;
+                    }
+                    
+                    if (document.readyState === 'complete') {
+                        return fn();
+                    }
+                    
+                    document.addEventListener('DOMContentLoaded', fn, false);
+                },
+                ajaxRequest: function ajaxRequest(method, url, callback) {
+                    var xmlhttp = new XMLHttpRequest();
+                    
+                    xmlhttp.onreadystatechange = function() {
+                        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+                            callback(xmlhttp.response);
+                        }
+                    };
+                    
+                    xmlhttp.open(method, url, true);
+                    xmlhttp.send();
+                }    
+            };        
+            
+            function displayChart(data, totalVotes) {
+                console.log('displayChart(data) logged', data);
+                
+                var percentagePerVote = 100 / totalVotes;
+        
+                data = data.filter(function(choice) {
+                    return choice.votes > 0; 
+                });
+                
+                var pie = d3.layout.pie()
+                    .value(function(d) { return d.votes })
+                    .sort(null)
+                    .padAngle(.03);
+                
+                var w = 300;
+                var h = 300;
+                
+                var outerRadius = w / 2;
+                var innerRadius = 100;
+                
+                var color = d3.scale.category10();
+                
+                var arc = d3.svg.arc()
+                    .outerRadius(outerRadius)
+                    .innerRadius(innerRadius);
+                
+                var svg = d3.select(".poll-chart")
+                    .append("svg")
+                    .attr({
+                        width: w,
+                        height: h,
+                        class:'shadow'
+                    }).append('g')
+                    .attr({
+                        transform:'translate(' + w / 2 + ', ' + h / 2 + ')'
+                    });
+                    
+                var path = svg.selectAll('path')
+                    .data(pie(data))
+                    .enter()
+                    .append('path')
+                    .attr({
+                        d: arc,
+                        fill: function(d, i) {
+                            return color(d.data.choice);
+                        }
+                    });
+                
+                path.transition()
+                    .duration(1000)
+                    .attrTween('d', function(d) {
+                        var interpolate = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
+                        
+                        return function(t) {
+                            return arc(interpolate(t));
+                        };
+                    });
+                
+                
+                var restOfTheData = function() {
+                    var text = svg.selectAll('text')
+                            .data(pie(data))
+                            .enter()
+                            .append("text")
+                            .transition()
+                            .duration(200)
+                            .attr("transform", function(d) {
+                                return "translate(" + arc.centroid(d) + ")";
+                            })
+                            .attr("dy", ".4em")
+                            .attr("text-anchor", "middle")
+                            .text(function(d){
+                                return d.data.votes;
+                            })
+                            .style({
+                                fill:'#fff',
+                                'font-size': '10px'
+                            });
+                    
+                    var legendRectSize = 20;
+                    var legendSpacing = 7;
+                    var legendHeight = legendRectSize + legendSpacing;
+                
+                
+                    var legend = svg.selectAll('.legend')
+                            .data(color.domain())
+                            .enter()
+                            .append('g')
+                            .attr({
+                                class: 'legend',
+                                transform: function(d, i) {
+                                    //Just a calculation for x & y position
+                                    return 'translate(-35,' + ((i * legendHeight) - 65) + ')';
+                                }
+                            });
+                            
+                    legend.append('rect')
+                            .attr({
+                                width: legendRectSize,
+                                height: legendRectSize,
+                                rx: 20,
+                                ry: 20
+                            })
+                            .style({
+                                fill:color,
+                                stroke:color
+                            });
+                
+                    legend.append('text')
+                            .attr({
+                                x: 30,
+                                y: 15
+                            })
+                            .text(function(d) {
+                                return d;
+                            }).style({
+                                fill:'#929DAF',
+                                'font-size':'14px'
+                            });
+                };
+                
+                 setTimeout(restOfTheData,1000);
+            }       
+            
+            var pollId = window.location.href.split('/').pop();
+            
+            ajaxFunctions.ajaxRequest('GET', `/api/poll/${pollId}`, function(data) {
+                poll = JSON.parse(data);
+                
+                $('#poll-title').html(escapeHtml(poll.title));
+
+                var formattedData = [];
+                
+                Object.keys(poll.choices).map(function(key, index) {
+                    formattedData.push(
+                        { 
+                            choice: key, 
+                            votes: poll['choices'][key] 
+                        }
+                    );
+                });
+                
+                var totalVotes = 0;
+                
+                for(var i = 0; i < formattedData.length; i++) {
+                    formattedData[i].votes = parseInt(formattedData[i].votes);
+                    totalVotes += formattedData[i].votes;
+                }
+                
+                if (totalVotes > 0) {
+                    displayChart(formattedData, totalVotes);
+                } else {
+                    $('.poll-chart').append("<div class='well'>No one's voted on the poll yet. Go to the home page and cast your vote now!</div>");
+                }
+            });
+            
+            function escapeHtml(string) {
+                var entityMap = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;',
+                    '/': '&#x2F;',
+                    '`': '&#x60;',
+                    '=': '&#x3D;'
+                };
+
+                return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+                    return entityMap[s];
+                }); 
+            }
+        </script>
+        
+    </body>
+
+	
+</html>
